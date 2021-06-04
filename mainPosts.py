@@ -3,6 +3,7 @@ import instaloader
 import configparser
 import json
 import urllib.request
+import csv
 
 def vpn_check():
     ''' Checks if a VPN is currently running based on IP '''
@@ -42,13 +43,47 @@ def get_and_store_likes(post):
     
     profiles_list = post.get_likes()
 
+
+
     with open('data/temp.txt', "a+") as f:
         for profile in profiles_list:
             f.write(str(profile.userid) + '\n')
 
     print(f"Updated output File.")
 
+
 ''' Run Main Function '''
+# Load/Read Input .CSV 
+f = open("data/source.csv", "r", newline='')
+csv_reader = csv.DictReader(f)
+data = {}
+data_columnnames = ['instagram_url','instagram_id','instagram_name','is_public','done_posts','high_priority','has_story_available','score','notes']
+
+for row in csv_reader:
+    data[int(row['instagram_id'])] = row
+
+data_fastset = set(data.keys())  # A 'set' object of just the IDs
+
+if len(data_columnnames) == len(data[next(iter(data))]):
+    print(f"Number of columns of input .csv matches the expected value: {len(data_columnnames)}")
+else:
+    raise Exception(f"Error, Number of columns of input .csv does not match the expected value. Change the 'data_columnnames' variable.")
+
+print(f"CSV file successfully loaded.")
+
+# Write to Output .CSV 
+f = open("data/source.csv", "w", newline='')
+print(list(data.values()))
+csv_writer = csv.DictWriter(f, fieldnames=data_columnnames)
+csv_writer.writeheader()
+for row in list(data.values()):
+    csv_writer.writerow(row)
+f.close()
+
+
+quit()
+
+
 print(f"Starting...")
 
 vpn_check()
@@ -68,10 +103,16 @@ else:
     InstaLoader.login(config['Settings']['username'], config['Settings']['password'])  # Traditional log in Method, bugged https://github.com/instaloader/instaloader/issues/1150
 print(f"Logged in successfully.\n")
 
+# Load/Read Input .CSV 
+...
+
 posts_list = posts_parse(InstaLoader)
 
 for post in posts_list:
     get_and_store_likes(post)
+
+
+
 
 # INSTAGRAM SCRAPER
 # instagram-scraper j.touni -u thodoris_xrysikos -p fagaabvadaa2xC3Casd2 -t story --filter-location 109790383963906 --include-location --location
