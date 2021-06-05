@@ -2,8 +2,6 @@
 
 A social engineering Instagram bot for (not so) malicious means.
 
-[TODO] Download and Fork https://github.com/arc298/instagram-scraper. It outputs story locations to a .JSON, based on a list of Instagram users.
-
 ## Running the Tool
 
 1. Install the required Python packages/dependencies.
@@ -36,3 +34,13 @@ python mainPosts.py
 | instagram_url | instagram_id | instagram_name | is_public | done_posts | high_priority | has_story_available | score | notes |
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | https://www.instagram.com/bmw/ | ... | ... | | | | | | |
+
+## Incorporate Instagram Scraper for Automatic Analysis
+
+After we acquire the output data, we perform manual analysis. If automatic analysis of Instagram Stories is needed, [InstagramScraper](https://github.com/arc298/instagram-scraper) could be used, featuring location detection for stories. It has the ability to output story locations to a .json file, based on a list of Instagram users. Some examples:
+
+``` bash
+instagram-scraper user_xxx -u username -p password -t story --filter-location 109790383963906 --include-location --location
+instagram-scraper --tag athens -u username -p password -t story --include-location --filter-location 109790383963906
+instagram-scraper trolololer86 -u username -p password -t story --filter-location 14294616 --include-location --location
+```
