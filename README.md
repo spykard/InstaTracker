@@ -35,6 +35,10 @@ python mainPosts.py
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | https://www.instagram.com/bmw/ | ... | ... | | | | | | |
 
+## Troubleshooting - Error 429: Too Many Requests
+
+In case of [Error 429](https://instaloader.github.io/troubleshooting.html#too-many-requests), where too many requests have been sent to the server and the tool gets automatically redirected to Log In, perform the following actions: Either re-run the `export_firefox_session.py` to get a fresh session and/or try a different Instagram Account.
+
 ## Incorporate Instagram Scraper for Automatic Analysis
 
 After we acquire the output data, we perform manual analysis. If automatic analysis of Instagram Stories is needed, [InstagramScraper](https://github.com/arc298/instagram-scraper) could be used, featuring location detection for stories. It has the ability to output story locations to a .json file, based on a list of Instagram users. Some examples:
