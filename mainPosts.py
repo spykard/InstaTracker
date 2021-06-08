@@ -4,13 +4,14 @@ import configparser
 import json
 import urllib.request
 import csv
+import sys
 from collections import defaultdict, OrderedDict
 
 def vpn_check():
     ''' Checks if a VPN is currently running based on IP '''
 
     GEO_IP_API_URL  = 'http://ip-api.com/json/'
-    original_country = 'Greece'
+    original_country = 'Any'
 
     # Creating request object to GeoLocation API
     req             = urllib.request.Request(GEO_IP_API_URL)
@@ -40,8 +41,6 @@ def posts_parse(InstaLoader):
 def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader):
     ''' Gets a list of all the Profiles that liked the given Post and stores them on a Dict data Structure '''
 
-    count = 0
-
     print(f"Processing {post}...")
     
     profiles_list = post.get_likes()
@@ -51,9 +50,9 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader)
     # Update Structure
     for profile in profiles_list:
         id = profile.userid
-        temp_profile = instaloader.Profile.from_username(InstaLoader.context, 'yrwini')
 
         # Debug
+        # temp_profile = instaloader.Profile.from_username(InstaLoader.context, 'yrwini')
         # print(temp_profile.username)
         # print(temp_profile.has_public_story)
         # print(temp_profile.has_viewable_story)
@@ -68,8 +67,7 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader)
             data[id][data_columnnames[5]] = data[id][data_columnnames[5]]
             data[id][data_columnnames[6]] = profile.has_public_story
             data[id][data_columnnames[7]] = data[id][data_columnnames[7]]
-            data[id][data_columnnames[8]] = data[id][data_columnnames[8]]
-            print()    
+            data[id][data_columnnames[8]] = data[id][data_columnnames[8]]  
         else:                   # New Row
             data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
             data[id][data_columnnames[1]] = profile.userid
@@ -80,12 +78,7 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader)
             data[id][data_columnnames[6]] = profile.has_public_story
             data[id][data_columnnames[7]] = ""
             data[id][data_columnnames[8]] = ""
-            print()   
-
-        print(data[id])
-        count += 1
-        if count == 2:
-            break
+        print(f"Profile {id} scraped successfully.")   
 
     return (data)
 
@@ -144,8 +137,19 @@ else:
     InstaLoader.login(config['Settings']['username'], config['Settings']['password'])  # Traditional log in Method, bugged https://github.com/instaloader/instaloader/issues/1150
 print(f"Logged in successfully.\n")
 
+# Ask user for Run Mode ~ Mode=1: Fresh Run, Mode=2: Continue Previous Run
+print(f"Select a Run Mode ~ (1): Fresh Run, (2): Continue Previous Partial Run: ")
+mode = sys.stdin.readline().strip() 
+
 # Load/Read Input .CSV
-(data, data_columnnames, data_fastset) = load_csv()
+if mode=="1":
+    (data, data_columnnames, data_fastset) = load_csv()
+elif mode=="2":
+    (data, data_columnnames, data_fastset) = load_csv()
+else:
+    raise Exception(f"Error, Mode input is not valid. Please enter one of the two possible options.")
+
+quit()
 
 # Parse Source Posts
 posts_list = posts_parse(InstaLoader)
