@@ -16,8 +16,10 @@ https://www.instagram.com/p/CPoWUvmn7Eo/
 
 ``` ini
 [Settings]
+login_mode = x
 username = xxx
 password = xxx
+save_every = 10
 ...
 ```
 
@@ -33,7 +35,7 @@ python mainPosts.py
 
 | instagram_url | instagram_id | instagram_name | is_public | done_posts | high_priority | has_story_available | score | notes |
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| https://www.instagram.com/bmw/ | ... | ... | | | | | | |
+| https://www.instagram.com/bmw/ | 43109246 | bmw | True | ... | ... | True | 1 | A Sample Data Row |
 
 ## Troubleshooting - Error 429: Too Many Requests
 
