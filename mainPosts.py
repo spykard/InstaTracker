@@ -5,6 +5,8 @@ import json
 import urllib.request
 import csv
 import sys
+import os
+from datetime import datetime
 from collections import defaultdict, OrderedDict
 
 def vpn_check():
@@ -34,11 +36,11 @@ def posts_parse(InstaLoader):
 
     print(f"Loading Source Posts to be Tracked.")
     posts_list = [instaloader.Post.from_shortcode(InstaLoader.context, x) for x in posts_raw]  # 'Post' Object
-    print(f"Posts loaded successfully: {posts_list}.")
+    print(f"Posts loaded successfully: {posts_list}.\n")
 
     return (posts_list)
 
-def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader):
+def get_and_store_likes(post, data, data_columnnames, data_fastset, exclude_fastset, save_every):
     ''' Gets a list of all the Profiles that liked the given Post and stores them on a Dict data Structure '''
 
     print(f"Processing {post}...")
@@ -47,45 +49,73 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader)
 
     data = defaultdict(OrderedDict,data)  # A more appropriate data type for direct assignment of values
 
-    # Update Structure
+    count = 0
+    items_to_save = []
+
+    # Update Data Structure
     for profile in profiles_list:
         id = profile.userid
 
         # Debug
-        # temp_profile = instaloader.Profile.from_username(InstaLoader.context, 'yrwini')
         # print(temp_profile.username)
         # print(temp_profile.has_public_story)
         # print(temp_profile.has_viewable_story)
         # quit()
 
-        if id in data_fastset:  # Existing Row
-            data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
-            data[id][data_columnnames[1]] = profile.userid
-            data[id][data_columnnames[2]] = profile.username
-            data[id][data_columnnames[3]] = not profile.is_private
-            data[id][data_columnnames[4]] = data[id][data_columnnames[4]] + ", " + post.owner_username + post.shortcode
-            data[id][data_columnnames[5]] = data[id][data_columnnames[5]]
-            data[id][data_columnnames[6]] = profile.has_public_story
-            data[id][data_columnnames[7]] = data[id][data_columnnames[7]]
-            data[id][data_columnnames[8]] = data[id][data_columnnames[8]]  
-        else:                   # New Row
-            data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
-            data[id][data_columnnames[1]] = profile.userid
-            data[id][data_columnnames[2]] = profile.username
-            data[id][data_columnnames[3]] = not profile.is_private
-            data[id][data_columnnames[4]] = post.owner_username + post.shortcode
-            data[id][data_columnnames[5]] = ""
-            data[id][data_columnnames[6]] = profile.has_public_story
-            data[id][data_columnnames[7]] = ""
-            data[id][data_columnnames[8]] = ""
-        print(f"Profile {id} scraped successfully.")   
+        if id not in exclude_fastset:
+            if id in data_fastset:  # Existing Row
+                data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
+                data[id][data_columnnames[1]] = profile.userid
+                data[id][data_columnnames[2]] = profile.username
+                data[id][data_columnnames[3]] = not profile.is_private
+                data[id][data_columnnames[4]] = data[id][data_columnnames[4]] + ", " + post.owner_username + post.shortcode
+                data[id][data_columnnames[5]] = data[id][data_columnnames[5]]
+                data[id][data_columnnames[6]] = profile.has_public_story
+                data[id][data_columnnames[7]] = data[id][data_columnnames[7]]
+                data[id][data_columnnames[8]] = data[id][data_columnnames[8]]  
+            else:                   # New Row
+                data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
+                data[id][data_columnnames[1]] = profile.userid
+                data[id][data_columnnames[2]] = profile.username
+                data[id][data_columnnames[3]] = not profile.is_private
+                data[id][data_columnnames[4]] = post.owner_username + post.shortcode
+                data[id][data_columnnames[5]] = ""
+                data[id][data_columnnames[6]] = profile.has_public_story
+                data[id][data_columnnames[7]] = ""
+                data[id][data_columnnames[8]] = ""
+            print(f"Profile {id} scraped successfully.")
+
+            count += 1
+            items_to_save.append(id)
+        else:
+            print(f"Profile {id} has already been scraped in a previous Run.")
+
+        # Perform a BackUp of the Data Structure so far. Can be used as a partial Run later in the form of input data.
+        if count == save_every:
+            current_time = datetime.now()
+            current_time = current_time.strftime("%m/%d/%Y, %H:%M:%S")
+            log_text = f"-- {current_time} : Performed a BackUp of {save_every} Items. --"
+            with open("data/partial_run_log.txt", "a") as f:
+                f.write("[" + log_text + "]\n")
+                for item in items_to_save:
+                    f.write(str(item) + "\n")
+            print(log_text)
+            save_csv("2", data, data_columnnames)
+            count = 0
+            items_to_save = []
+
 
     return (data)
 
-def load_csv():
+def load_csv(mode):
     ''' Load/Read Input .CSV '''
 
-    f = open("data/source.csv", "r", newline='')
+    if mode == "1":
+        filepath = "data/source.csv"
+    elif mode == "2":
+        filepath = "data/source_partial.csv"
+
+    f = open(filepath, "r", newline='')
     csv_reader = csv.DictReader(f)
     data = {}
     data_columnnames = ['instagram_url','instagram_id','instagram_name','is_public','done_posts','high_priority','has_story_available','score','notes']
@@ -105,17 +135,21 @@ def load_csv():
 
     return (data, data_columnnames, data_fastset)
 
-def save_csv(data, data_columnnames):
+def save_csv(mode, data, data_columnnames):
     ''' Write to Output .CSV '''
 
-    f = open("data/source.csv", "w", newline='')
+    if mode == "1":
+        filepath = "data/source.csv"
+    elif mode == "2":
+        filepath = "data/source_partial.csv"
+
+    f = open(filepath, "w", newline='')
     csv_writer = csv.DictWriter(f, fieldnames=data_columnnames)
     csv_writer.writeheader()
     for row in list(data.values()):
         csv_writer.writerow(row)
 
     f.close()
-    print(f"Successfully wrote to CSV file.")
 
 
 ''' Run Main Function '''
@@ -130,8 +164,8 @@ config.read('config/config.ini')
 InstaLoader = instaloader.Instaloader()
 
 # Run Log In
-mode = config['Settings']['login_mode']
-if mode == "file":
+login_mode = config['Settings']['login_mode']
+if login_mode == "file":
     InstaLoader.load_session_from_file(config['Settings']['username'])  # Load Session created with `instaloader -l USERNAME`
 else:
     InstaLoader.login(config['Settings']['username'], config['Settings']['password'])  # Traditional log in Method, bugged https://github.com/instaloader/instaloader/issues/1150
@@ -142,20 +176,33 @@ print(f"Select a Run Mode ~ (1): Fresh Run, (2): Continue Previous Partial Run: 
 mode = sys.stdin.readline().strip() 
 
 # Load/Read Input .CSV
-if mode=="1":
-    (data, data_columnnames, data_fastset) = load_csv()
-elif mode=="2":
-    (data, data_columnnames, data_fastset) = load_csv()
-else:
-    raise Exception(f"Error, Mode input is not valid. Please enter one of the two possible options.")
+if mode == "1":  # Fresh Run
+    (data, data_columnnames, data_fastset) = load_csv(mode)
+    exclude_fastset = set()
 
-quit()
+    if os.path.isfile('data/source_partial.csv'):
+        current_time = datetime.now()
+        os.rename('data/source_partial.csv', 'data/source_partial_wiped_' + current_time.strftime("%m%d%Y_%H%M%S") + '.csv')
+        os.rename('data/partial_run_log.txt', 'data/partial_run_log_wiped_' + current_time.strftime("%m%d%Y_%H%M%S") + '.txt')
+        print(f"Wiped previous Partial Runs by renaming the Files.")
+elif mode == "2":  # Previous Partial Run
+    (data, data_columnnames, data_fastset) = load_csv(mode)
+    exclude_fastset = set()
+
+    with open('data/partial_run_log.txt', "r") as f:
+        temp = f.read().splitlines()
+        for line in temp:
+            if line.startswith("[") == False:
+                exclude_fastset.add(int(line))
+else:
+    raise Exception(f"Error, Input Mode is not valid. Please enter one of the two possible Options.")
 
 # Parse Source Posts
 posts_list = posts_parse(InstaLoader)
 
 for post in posts_list:
-    data = get_and_store_likes(post, data, data_columnnames, data_fastset, InstaLoader)
+    data = get_and_store_likes(post, data, data_columnnames, data_fastset, exclude_fastset, int(config['Settings']['save_every']))
 
-# Write to Output .CSV
-save_csv(data, data_columnnames)
+# Write to final Output .CSV
+save_csv("1", data, data_columnnames)
+print(f"Successfully wrote to Final CSV file.")
