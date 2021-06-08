@@ -104,7 +104,6 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, exclude_fast
             count = 0
             items_to_save = []
 
-
     return (data)
 
 def load_csv(mode):
