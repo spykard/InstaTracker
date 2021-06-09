@@ -1,4 +1,4 @@
-''' Outputs a .csv file that tracks a set of Instagram Profiles based on a selection of posts '''
+''' Updates a .csv file based on a selection of posts - The goal is to track a set of Instagram Profiles '''
 import instaloader
 import configparser
 import json
