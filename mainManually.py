@@ -122,4 +122,4 @@ while True:
 
     # Write to final Output .CSV
     save_csv("1", data, data_columnnames)
-    print(f"Successfully wrote to Final CSV file.\n")    
+    print(f"-- DONE -- Successfully wrote to Final CSV file.\n")    
