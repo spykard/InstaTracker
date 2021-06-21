@@ -67,10 +67,10 @@ def get_and_store_likes(post, data, data_columnnames, data_fastset, exclude_fast
                 data[id][data_columnnames[0]] = "https://www.instagram.com/" + profile.username + "/"
                 data[id][data_columnnames[1]] = profile.userid
                 data[id][data_columnnames[2]] = profile.username
-                data[id][data_columnnames[3]] = not profile.is_private
+                data[id][data_columnnames[3]] = data[id][data_columnnames[3]]
                 data[id][data_columnnames[4]] = data[id][data_columnnames[4]] + ", " + post.owner_username + post.shortcode
                 data[id][data_columnnames[5]] = data[id][data_columnnames[5]]
-                data[id][data_columnnames[6]] = profile.has_public_story
+                data[id][data_columnnames[6]] = data[id][data_columnnames[6]]
                 data[id][data_columnnames[7]] = data[id][data_columnnames[7]]
                 data[id][data_columnnames[8]] = data[id][data_columnnames[8]]  
             else:                   # New Row
